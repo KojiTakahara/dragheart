@@ -23,13 +23,13 @@ public class DMSheetController {
     private PdfService pdfService;
 
     @RequestMapping(value = "", method = RequestMethod.POST)
-    public void doPost(@RequestParam String playerName, @RequestParam String[] mainDeck, @RequestParam(required = false) String[] hyperSpatial, HttpServletResponse res) throws IOException {
+    public void doPost(@RequestParam String playerName, @RequestParam String[] mainDeck, @RequestParam(required = false) String[] hyperSpatial, @RequestParam(required = false) String format, HttpServletResponse res) throws IOException {
         if (!pdfService.validate(mainDeck, hyperSpatial)) {
             res.setStatus(400);
             return;
         }
         try {
-            PdfReader reader = new PdfReader("decksheet.pdf");
+            PdfReader reader = new PdfReader(getPdfFileNameByFormat(format));
             PdfStamper pdfStamper = new PdfStamper(reader, res.getOutputStream());
             BaseFont bf = BaseFont.createFont("HeiseiKakuGo-W5", "UniJIS-UCS2-H", BaseFont.NOT_EMBEDDED);
             PdfContentByte over = pdfStamper.getOverContent(1);
@@ -43,6 +43,19 @@ public class DMSheetController {
             e.printStackTrace();
         }
         res.setContentType("application/pdf");
+    }
+
+    /**
+     * formatに合わせたPDFファイル名を返す
+     */
+    private String getPdfFileNameByFormat(String format) {
+        if (format == null || format == "") {
+            return "decksheet.pdf";
+        }
+        if (format == "dmgp_01") {
+            return "decksheet_dmgp_01.pdf";
+        }
+        return "decksheet.pdf";
     }
 
 }
