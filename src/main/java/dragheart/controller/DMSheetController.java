@@ -110,19 +110,13 @@ public class DMSheetController {
     }
 
     private void callApi(String[] mainDeck, String[] hyperSpatial, String format, String deckId) {
-        Unirest.post("http://localhost:8080/api/deck")
+        Unirest.post("http://1-1-0.dm-decksheet.appspot.com/api/deck")
                 .header("accept", "application/json")
                 .header("Content-Type", "application/json")
-//                .field("mainDeck", mainDeck)
-//                .field("hyperSpatial", hyperSpatial)
-//                .field("format", format)
-//                .field("deckId", deckId)
-                .body("{" +
-                        "\"format\":\"" + format + "\"," +
-                        "\"mainDeck\":\"" + Arrays.toString(mainDeck) + "\"," +
-                        "\"hyperSpatial\":\"" + Arrays.toString(hyperSpatial) + "\"," +
-                        "\"deckId\":\"" + deckId + "\"" +
-                        "}")
+                .field("mainDeck", Arrays.toString(mainDeck))
+                .field("hyperSpatial", Arrays.toString(hyperSpatial))
+                .field("format", format)
+                .field("deckId", deckId)
                 .asJsonAsync();
     }
 
