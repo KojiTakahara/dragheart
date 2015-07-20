@@ -73,7 +73,7 @@ public class DMSheetController {
         if (format == null || format.equals("")) {
             return "decksheet.pdf";
         }
-        if (format.equals("dmgp_01")) {
+        if (format.equals("dmgp_1st")) {
             return "dmgp-1st-entrysheet.pdf";
         }
         return "decksheet.pdf";
