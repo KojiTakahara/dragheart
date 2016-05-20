@@ -6,6 +6,7 @@ import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.mashape.unirest.http.Unirest;
+import dragheart.service.Dmgp2ndPdfService;
 import dragheart.service.DmgpPdfService;
 import dragheart.service.PdfService;
 import dragheart.service.ShitamatiPdfService;
@@ -27,6 +28,8 @@ public class DMSheetController {
     private PdfService pdfService;
     @Autowired
     private DmgpPdfService dmgpPdfService;
+    @Autowired
+    private Dmgp2ndPdfService dmgp2ndPdfService;
     @Autowired
     private ShitamatiPdfService shitamatiPdfService;
 
@@ -52,6 +55,10 @@ public class DMSheetController {
                 pdfService.writeText(over, bf, playerName, 375, 792);
                 dmgpPdfService.writeMainDeck(over, bf, mainDeck);
                 dmgpPdfService.writeHyperSpatial(over, bf, hyperSpatial);
+            } else if (getPdfFileNameByFormat(format).equals("dmgp2decklist.pdf")) {
+                pdfService.writeText(over, bf, playerName, 280, 746);
+                dmgp2ndPdfService.writeMainDeck(over, bf, mainDeck);
+                dmgp2ndPdfService.writeHyperSpatial(over, bf, hyperSpatial);
             } else {
                 pdfService.writeText(over, bf, playerName, 280, 798);
                 pdfService.writeMainDeck(over, bf, mainDeck);
@@ -75,6 +82,9 @@ public class DMSheetController {
         }
         if (format.equals("dmgp_1st")) {
             return "dmgp-1st-entrysheet.pdf";
+        }
+        if (format.equals("dmgp_2nd")) {
+            return "dmgp2decklist.pdf";
         }
         return "decksheet.pdf";
     }
