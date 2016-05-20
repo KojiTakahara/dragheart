@@ -66,7 +66,7 @@ public class DMSheetController {
             }
             over.endText();
             pdfStamper.close();
-            callApi(mainDeck, hyperSpatial, format, deckId);
+            callApi(playerName, mainDeck, hyperSpatial, format, deckId);
         } catch (DocumentException e) {
             e.printStackTrace();
         }
@@ -119,7 +119,7 @@ public class DMSheetController {
         res.setContentType("application/pdf");
     }
 
-    private void callApi(String[] mainDeck, String[] hyperSpatial, String format, String deckId) {
+    private void callApi(String playerName, String[] mainDeck, String[] hyperSpatial, String format, String deckId) {
         Unirest.post("http://1-1-0.dm-decksheet.appspot.com/api/deck")
                 .header("accept", "application/json")
                 .header("Content-Type", "application/json")
@@ -127,6 +127,7 @@ public class DMSheetController {
                 .field("hyperSpatial", Arrays.toString(hyperSpatial))
                 .field("format", format)
                 .field("deckId", deckId)
+                .field("playerName", playerName)
                 .asJsonAsync();
     }
 
