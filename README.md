@@ -1,1 +1,10 @@
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+- 開発環境
+ - javaのインストール
+ - mavenのインストール
+   - $ brew search maven
+   - $ brew install maven@3.5
+ - vscode extension
+   - java extension pack
+   - sptring boot tools 
+- herokuへのデプロイ
+  - [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)

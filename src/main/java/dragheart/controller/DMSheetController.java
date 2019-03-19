@@ -6,10 +6,7 @@ import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.mashape.unirest.http.Unirest;
-import dragheart.service.Dmgp2ndPdfService;
-import dragheart.service.DmgpPdfService;
 import dragheart.service.PdfService;
-import dragheart.service.ShitamatiPdfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import javax.servlet.http.*;
 
@@ -26,47 +24,45 @@ public class DMSheetController {
 
     @Autowired
     private PdfService pdfService;
-    @Autowired
-    private DmgpPdfService dmgpPdfService;
-    @Autowired
-    private Dmgp2ndPdfService dmgp2ndPdfService;
-    @Autowired
-    private ShitamatiPdfService shitamatiPdfService;
 
     @RequestMapping(value = "", method = RequestMethod.POST)
-    public void doPost(@RequestParam String playerName,
+    public void doPost(@RequestParam String name,
+                       @RequestParam(required = false) String nameKana,
+                       @RequestParam(required = false) String id,
                        @RequestParam String[] mainDeck,
                        @RequestParam(required = false) String[] hyperSpatial,
-                       @RequestParam(required = false) String format,
-                       @RequestParam(required = false) String deckId,
+                       @RequestParam(required = false) String[] hyperGR,
+                       @RequestParam(required = false) boolean forbiddenStar,
+                       @RequestParam(required = false) boolean teamSheet,
+                       @RequestParam(required = false) boolean teamName,
+                       @RequestParam(required = false) String seat,
                        HttpServletResponse res) throws IOException {
-        if (!pdfService.validate(mainDeck, hyperSpatial)) {
-            res.setStatus(400);
+        if (hyperSpatial == null) {
+            hyperSpatial = new String[0];
+        }
+        if (hyperGR == null) {
+            hyperGR = new String[0];
+        }
+        if (!pdfService.validate(mainDeck, hyperSpatial, hyperGR)) {
+            this.validateMessage(res);
             return;
         }
         try {
-            PdfReader reader = new PdfReader(getPdfFileNameByFormat(format));
+            PdfReader reader = new PdfReader(getPdfFileNameByFormat(teamSheet));
             PdfStamper pdfStamper = new PdfStamper(reader, res.getOutputStream());
             BaseFont bf = BaseFont.createFont("HeiseiKakuGo-W5", "UniJIS-UCS2-H", BaseFont.NOT_EMBEDDED);
             PdfContentByte over = pdfStamper.getOverContent(1);
             over.beginText();
-
-            if (getPdfFileNameByFormat(format).equals("dmgp-1st-entrysheet.pdf")) {
-                pdfService.writeText(over, bf, playerName, 375, 792);
-                dmgpPdfService.writeMainDeck(over, bf, mainDeck);
-                dmgpPdfService.writeHyperSpatial(over, bf, hyperSpatial);
-            } else if (getPdfFileNameByFormat(format).equals("dmgp2decklist.pdf")) {
-                pdfService.writeText(over, bf, playerName, 280, 746);
-                dmgp2ndPdfService.writeMainDeck(over, bf, mainDeck);
-                dmgp2ndPdfService.writeHyperSpatial(over, bf, hyperSpatial);
-            } else {
-                pdfService.writeText(over, bf, playerName, 280, 798);
-                pdfService.writeMainDeck(over, bf, mainDeck);
-                pdfService.writeHyperSpatial(over, bf, hyperSpatial);
-            }
+            pdfService.writeName(over, bf, name);
+            pdfService.writeNameKana(over, bf, nameKana);
+            pdfService.writeId(over, bf, id);
+            pdfService.writeMainDeck(over, bf, mainDeck);
+            pdfService.writeHyperSpatial(over, bf, hyperSpatial);
+            pdfService.writeHyperGR(over, bf, hyperGR);
+            pdfService.writeForbiddenStar(over, bf, forbiddenStar);
             over.endText();
             pdfStamper.close();
-            callApi(playerName, mainDeck, hyperSpatial, format, deckId);
+            // callApi(playerName, mainDeck, hyperSpatial, format, deckId);
         } catch (DocumentException e) {
             e.printStackTrace();
         }
@@ -74,61 +70,37 @@ public class DMSheetController {
     }
 
     /**
-     * formatに合わせたPDFファイル名を返す
+     * PDFファイル名を返す
      */
-    private String getPdfFileNameByFormat(String format) {
-        if (format == null || format.equals("")) {
-            return "decksheet.pdf";
+    private String getPdfFileNameByFormat(Boolean teamSheet) {
+        if (teamSheet) {
+            return "decksheet_team.pdf";
         }
-        if (format.equals("dmgp_1st")) {
-            return "dmgp-1st-entrysheet.pdf";
-        }
-        if (format.equals("dmgp_2nd")) {
-            return "dmgp2decklist.pdf";
-        }
-        return "decksheet.pdf";
+        return "decksheet_single.pdf";
     }
 
-    @RequestMapping(value = "/kousien", method = RequestMethod.POST)
-    public void kousien(@RequestParam String playerName,
-                        @RequestParam String[] mainDeck,
-                        @RequestParam String[] mainColors,
-                        @RequestParam(required = false) String[] hyperSpatial,
-                        @RequestParam(required = false) String[] hyperColors,
-                        HttpServletResponse res) throws IOException {
-        if (!pdfService.validate(mainDeck, hyperSpatial)) {
-            res.setStatus(400);
-            return;
-        }
-        try {
-            PdfReader reader = new PdfReader("shitamati.pdf");
-            PdfStamper pdfStamper = new PdfStamper(reader, res.getOutputStream());
-            BaseFont bf = BaseFont.createFont("HeiseiKakuGo-W5", "UniJIS-UCS2-H", BaseFont.NOT_EMBEDDED);
-            PdfContentByte over = pdfStamper.getOverContent(1);
-            over.beginText();
-            shitamatiPdfService.writeText(over, bf, playerName, 280, 798);
-            shitamatiPdfService.writeMainDeck(over, bf, mainDeck);
-            shitamatiPdfService.writeMainColors(over, bf, mainColors);
-            shitamatiPdfService.writeHyperSpatial(over, bf, hyperSpatial);
-            shitamatiPdfService.writeHyperColors(over, bf, hyperColors);
-            over.endText();
-            pdfStamper.close();
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        }
-        res.setContentType("application/pdf");
-    }
-
-    private void callApi(String playerName, String[] mainDeck, String[] hyperSpatial, String format, String deckId) {
+    private void callApi(String playerName, String[] mainDeck, String[] hyperSpatial, String format) {
         Unirest.post("http://1-1-0.dm-decksheet.appspot.com/api/deck")
                 .header("accept", "application/json")
                 .header("Content-Type", "application/json")
                 .field("mainDeck", Arrays.toString(mainDeck))
                 .field("hyperSpatial", Arrays.toString(hyperSpatial))
                 .field("format", format)
-                .field("deckId", deckId)
                 .field("playerName", playerName)
                 .asJsonAsync();
+    }
+
+    private void validateMessage(HttpServletResponse res) throws IOException {
+        res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        StringBuffer sb = new StringBuffer();
+        sb.append("{");
+        sb.append("\"status\":400,\"error\":\"Bad Request\",");
+        sb.append("\"message\":\"Parameter is invalid\"");
+        sb.append("}");
+        PrintWriter out = res.getWriter();
+        out.println(new String(sb));
+        out.close();
+        res.setContentType("application/json");
     }
 
 }
