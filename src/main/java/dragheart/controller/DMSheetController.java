@@ -1,21 +1,37 @@
 package dragheart.controller;
 
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
 import com.mashape.unirest.http.Unirest;
 import dragheart.service.PdfService;
+
+import org.apache.pdfbox.io.RandomAccessBuffer;
+import org.apache.pdfbox.io.RandomAccessRead;
+import org.apache.pdfbox.multipdf.Overlay;
+import org.apache.pdfbox.pdfparser.PDFParser;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.HashMap;
+
+import javax.imageio.ImageIO;
 import javax.servlet.http.*;
 
 @RestController
@@ -26,17 +42,12 @@ public class DMSheetController {
     private PdfService pdfService;
 
     @RequestMapping(value = "", method = RequestMethod.POST)
-    public void doPost(@RequestParam String name,
-                       @RequestParam(required = false) String nameKana,
-                       @RequestParam(required = false) String id,
-                       @RequestParam String[] mainDeck,
-                       @RequestParam(required = false) String[] hyperSpatial,
-                       @RequestParam(required = false) String[] hyperGR,
-                       @RequestParam(required = false) boolean forbiddenStar,
-                       @RequestParam(required = false) boolean teamSheet,
-                       @RequestParam(required = false) boolean teamName,
-                       @RequestParam(required = false) String seat,
-                       HttpServletResponse res) throws IOException {
+    public void doPost(@RequestParam String name, @RequestParam(required = false) String nameKana,
+            @RequestParam(required = false) String id, @RequestParam String[] mainDeck,
+            @RequestParam(required = false) String[] hyperSpatial, @RequestParam(required = false) String[] hyperGR,
+            @RequestParam(required = false) boolean forbiddenStar, @RequestParam(required = false) boolean teamSheet,
+            @RequestParam(required = false) boolean teamName, @RequestParam(required = false) String seat,
+            @RequestParam(required = false) boolean image, HttpServletResponse res) throws IOException {
         if (hyperSpatial == null) {
             hyperSpatial = new String[0];
         }
@@ -48,25 +59,76 @@ public class DMSheetController {
             return;
         }
         try {
-            PdfReader reader = new PdfReader(getPdfFileNameByFormat(teamSheet));
-            PdfStamper pdfStamper = new PdfStamper(reader, res.getOutputStream());
-            BaseFont bf = BaseFont.createFont("HeiseiKakuGo-W5", "UniJIS-UCS2-H", BaseFont.NOT_EMBEDDED);
-            PdfContentByte over = pdfStamper.getOverContent(1);
-            over.beginText();
-            pdfService.writeName(over, bf, name);
-            pdfService.writeNameKana(over, bf, nameKana);
-            pdfService.writeId(over, bf, id);
-            pdfService.writeMainDeck(over, bf, mainDeck);
-            pdfService.writeHyperSpatial(over, bf, hyperSpatial);
-            pdfService.writeHyperGR(over, bf, hyperGR);
-            pdfService.writeForbiddenStar(over, bf, forbiddenStar);
-            over.endText();
-            pdfStamper.close();
+            String tempPath = "temp.pdf";
+            PDDocument tmp = new PDDocument();
+            PDRectangle rectangle = PDRectangle.A4;
+            PDPage tmpPage = new PDPage(rectangle);
+            tmp.addPage(tmpPage);
+
+            PDPageContentStream contentStream = new PDPageContentStream(tmp, tmpPage);
+            PDFont font = getFont(tmp);
+            contentStream.beginText();
+            pdfService.writeName(contentStream, font, name);
+            pdfService.writeNameKana(contentStream, font, nameKana);
+            pdfService.writeId(contentStream, font, id);
+            pdfService.writeMainDeck(contentStream, font, mainDeck);
+            pdfService.writeHyperSpatial(contentStream, font, hyperSpatial);
+            pdfService.writeHyperGR(contentStream, font, hyperGR);
+            pdfService.writeForbiddenStar(contentStream, font, forbiddenStar);
+            contentStream.endText();
+            contentStream.close();
+            tmp.save(tempPath);
+            tmp.close();
+
+            PDDocument document = getFile(getPdfFileNameByFormat(teamSheet));
+            HashMap<Integer, String> overlayGuide = new HashMap<Integer, String>();
+            overlayGuide.put(1, tempPath);
+            Overlay overlay = new Overlay();
+            overlay.setInputPDF(document);
+            overlay.setOverlayPosition(Overlay.Position.FOREGROUND);
+            overlay.overlay(overlayGuide);
+
+            setOutputStream(image, document, res.getOutputStream());
+            overlay.close();
+            document.close();
             // callApi(playerName, mainDeck, hyperSpatial, format, deckId);
-        } catch (DocumentException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        res.setContentType("application/pdf");
+        res.setContentType(image ? "image/png" : "application/pdf");
+    }
+
+    /**
+     * 出力するデータのセット
+     * imageがtrueの場合, PNG形式. それ以外の場合, PDF形式で出力する
+     */
+    private void setOutputStream(boolean image, PDDocument document, OutputStream os) throws IOException {
+        if (image) {
+            PDFRenderer pdfRenderer = new PDFRenderer(document);
+            for (int page = 0; page < document.getNumberOfPages(); ++page) {
+                BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
+                ImageIO.write(bufferedImage, "png", os);
+            }
+            return;
+        }
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(os);
+        document.save(bufferedOutputStream);
+    }
+
+    /**
+     * パスからPDFファイルを取得する
+     */
+    private PDDocument getFile(String filePath) throws IOException {
+        Resource resource = new ClassPathResource(filePath);
+        RandomAccessRead accessRead = new RandomAccessBuffer(resource.getInputStream());
+        PDFParser pdfParser = new PDFParser(accessRead);
+        pdfParser.parse();
+        return pdfParser.getPDDocument();
+    }
+
+    private PDFont getFont(PDDocument tempDocument) throws IOException {
+        Resource resource = new ClassPathResource("corp_round_v1.ttf");
+        return PDType0Font.load(tempDocument, resource.getInputStream(), true);
     }
 
     /**
@@ -102,5 +164,4 @@ public class DMSheetController {
         out.close();
         res.setContentType("application/json");
     }
-
 }

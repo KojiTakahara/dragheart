@@ -1,8 +1,10 @@
 package dragheart.service;
 
-import com.itextpdf.text.Element;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfContentByte;
+import java.io.IOException;
+
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.util.Matrix;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,43 +33,43 @@ public class PdfService {
     private static final double DECK_OFF_X = 545.5;
     private static final double DECK_Y = 15.5;
 
-    public void writeName(PdfContentByte over, BaseFont bf, String name) {
-        this.writeText(over, bf, name, NAME_X, NAME_Y);
+    public void writeName(PDPageContentStream contentStream, PDFont font, String name) {
+        this.writeText(contentStream, font, name, NAME_X, NAME_Y);
     }
 
-    public void writeNameKana(PdfContentByte over, BaseFont bf, String nameKana) {
+    public void writeNameKana(PDPageContentStream contentStream, PDFont font, String nameKana) {
         if (nameKana != null) {
-            this.writeText(over, bf, nameKana, NAME_X, NAME_KANA_Y);
+            this.writeText(contentStream, font, nameKana, NAME_X, NAME_KANA_Y);
         }
     }
 
-    public void writeId(PdfContentByte over, BaseFont bf, String id) {
+    public void writeId(PDPageContentStream contentStream, PDFont font, String id) {
         if (id != null) {
-            this.writeText(over, bf, id, ID_X, NAME_Y);
+            this.writeText(contentStream, font, id, ID_X, NAME_Y);
         }
     }
 
-    public void writeMainDeck(PdfContentByte over, BaseFont bf, String[] mainDeck) {
-        writeCard(over, bf, mainDeck, (float) START_MAIN, MAIN_MAX);
+    public void writeMainDeck(PDPageContentStream contentStream, PDFont font, String[] mainDeck) {
+        writeCard(contentStream, font, mainDeck, (float) START_MAIN, MAIN_MAX);
     }
 
-    public void writeHyperSpatial(PdfContentByte over, BaseFont bf, String[] hyperSpatial) {
-        writeCard(over, bf, hyperSpatial, (float) START_HYPER, SPATIAL_MAX);
+    public void writeHyperSpatial(PDPageContentStream contentStream, PDFont font, String[] hyperSpatial) {
+        writeCard(contentStream, font, hyperSpatial, (float) START_HYPER, SPATIAL_MAX);
         float x = 0 < hyperSpatial.length ? DECK_ON_X : (float) DECK_OFF_X;
-        writeCircle(over, bf, x, (float) (START_HYPER + DECK_Y));
+        writeCircle(contentStream, font, x, (float) (START_HYPER + DECK_Y));
     }
 
-    public void writeHyperGR(PdfContentByte over, BaseFont bf, String[] hyperGR) {
-        writeCard(over, bf, hyperGR, (float) START_GR, GR_MAX);
+    public void writeHyperGR(PDPageContentStream contentStream, PDFont font, String[] hyperGR) {
+        writeCard(contentStream, font, hyperGR, (float) START_GR, GR_MAX);
         float x = 0 < hyperGR.length ? DECK_ON_X : (float) DECK_OFF_X;
-        writeCircle(over, bf, x, (float) (START_GR + DECK_Y));
+        writeCircle(contentStream, font, x, (float) (START_GR + DECK_Y));
     }
 
-    public void writeForbiddenStar(PdfContentByte over, BaseFont bf, Boolean forbiddenStar) {
-        writeCircle(over, bf, forbiddenStar ? 244 : (float) 267.5, 365);
+    public void writeForbiddenStar(PDPageContentStream contentStream, PDFont font, Boolean forbiddenStar) {
+        writeCircle(contentStream, font, forbiddenStar ? 244 : (float) 267.5, 365);
     }
 
-    private void writeCard(PdfContentByte over, BaseFont bf, String[] cards, float y, int max) {
+    private void writeCard(PDPageContentStream contentStream, PDFont font, String[] cards, float y, int max) {
         float x = LEFT;
         float tempY = y;
         for (int i = 0; i < cards.length; i++) {
@@ -77,23 +79,33 @@ public class PdfService {
             if (max / 2 == i) {
                 tempY = y;
             }
-            writeText(over, bf, cards[i], x, tempY);
+            writeText(contentStream, font, cards[i], x, tempY);
             tempY -= LINE_SPACE;
         }
     }
 
-    public void writeText(PdfContentByte over, BaseFont bf, String text, float x, float y) {
-        over.setFontAndSize(bf, FONT_SIZE);
-        over.setLineWidth(0.2);
-        over.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
-        over.showTextAligned(Element.ALIGN_TOP, text, x, y, 0);
+    public void writeText(PDPageContentStream contentStream, PDFont font, String text, float x, float y) {
+        try {
+            contentStream.setFont(font, FONT_SIZE);
+            contentStream.setNonStrokingColor(0, 0, 0);
+            contentStream.setTextMatrix(Matrix.getRotateInstance(0, x, y));
+            contentStream.newLine();
+            contentStream.showText(text);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void writeCircle(PdfContentByte over, BaseFont bf, float x, float y) {
-        over.setFontAndSize(bf, CIRCLE_FONT_SIZE);
-        over.setLineWidth(0.2);
-        over.setTextRenderingMode(PdfContentByte.TEXT_RENDER_MODE_FILL_STROKE);
-        over.showTextAligned(Element.ALIGN_TOP, CIRCLE, x, y, 0);
+    private void writeCircle(PDPageContentStream contentStream, PDFont font, float x, float y) {
+        try {
+            contentStream.setFont(font, CIRCLE_FONT_SIZE);
+            contentStream.setNonStrokingColor(255, 0, 0);
+            contentStream.setTextMatrix(Matrix.getRotateInstance(0, x, y));
+            contentStream.newLine();
+            contentStream.showText(CIRCLE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean validate(String[] mainDeck, String[] hyperSpatial, String[] hyperGR) {
