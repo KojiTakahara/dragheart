@@ -42,12 +42,19 @@ public class DMSheetController {
     private PdfService pdfService;
 
     @RequestMapping(value = "", method = RequestMethod.POST)
-    public void doPost(@RequestParam String name, @RequestParam(required = false) String nameKana,
-            @RequestParam(required = false) String id, @RequestParam String[] mainDeck,
-            @RequestParam(required = false) String[] hyperSpatial, @RequestParam(required = false) String[] hyperGR,
-            @RequestParam(required = false) boolean forbiddenStar, @RequestParam(required = false) boolean teamSheet,
-            @RequestParam(required = false) boolean teamName, @RequestParam(required = false) String seat,
-            @RequestParam(required = false) boolean image, HttpServletResponse res) throws IOException {
+    public void doPost(
+            @RequestParam String name,
+            @RequestParam(required = false) String nameKana,
+            @RequestParam(required = false) String id,
+            @RequestParam String[] mainDeck,
+            @RequestParam(required = false) String[] hyperSpatial,
+            @RequestParam(required = false) String[] hyperGR,
+            @RequestParam(required = false) boolean forbiddenStar,
+            @RequestParam(required = false) boolean teamSheet,
+            @RequestParam(required = false) boolean teamName,
+            @RequestParam(required = false) String seat,
+            @RequestParam(required = false) boolean image,
+            HttpServletResponse res) throws IOException {
         if (hyperSpatial == null) {
             hyperSpatial = new String[0];
         }
