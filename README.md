@@ -6,5 +6,9 @@
  - vscode extension
    - java extension pack
    - sptring boot tools 
+ - heroku
+   - $ heroku plugins:install java
+   - $ heroku buildpacks:clear
 - herokuへのデプロイ
-  - [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+  - $ mvn clean package
+  - $ heroku deploy:jar target/xxxx.jar --app appName
