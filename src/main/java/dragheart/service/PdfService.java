@@ -10,28 +10,31 @@ import org.springframework.stereotype.Component;
 @Component
 public class PdfService {
 
-    private static final int LEFT = 47;
-    private static final int RIGHT = 325;
-    private static final int START_MAIN = 711;
-    private static final double START_HYPER = 194;
-    private static final double START_GR = 324;
-    private static final double LINE_SPACE = 17.2;
-    private static final int FONT_SIZE = 9;
+    protected static int LEFT = 47;
+    protected static int RIGHT = 325;
+    protected static int START_MAIN = 711;
+    protected static double START_HYPER = 194;
+    protected static double START_GR = 324;
+    protected static double LINE_SPACE = 17.2;
+    protected static int FONT_SIZE = 9;
 
-    private static final int NAME_X = 255;
-    private static final int NAME_Y = 82;
-    private static final int NAME_KANA_Y = 117;
-    private static final int ID_X = 35;
+    protected static int NAME_X = 255;
+    protected static int NAME_Y = 82;
+    protected static int NAME_KANA_Y = 117;
+    protected static int ID_X = 35;
 
-    private static final int MAIN_MAX = 40;
-    private static final int SPATIAL_MAX = 8;
-    private static final int GR_MAX = 12;
+    protected static int MAIN_MAX = 40;
+    protected static int SPATIAL_MAX = 8;
+    protected static int GR_MAX = 12;
 
-    private static final String CIRCLE = "◯";
-    private static final int CIRCLE_FONT_SIZE = 14;
-    private static final int DECK_ON_X = 522;
-    private static final double DECK_OFF_X = 545.5;
-    private static final double DECK_Y = 15.5;
+    protected static String CIRCLE = "◯";
+    protected static int CIRCLE_FONT_SIZE = 14;
+    protected static int DECK_ON_X = 522;
+    protected static double DECK_OFF_X = 545.5;
+    protected static double DECK_Y = 15.5;
+    protected static double FORBIDDENSTAR_ON_X = 244;
+    protected static double FORBIDDENSTAR_OFF_X = 267.5;
+    protected static double FORBIDDENSTAR_Y = 365;
 
     public void writeName(PDPageContentStream contentStream, PDFont font, String name) {
         this.writeText(contentStream, font, name, NAME_X, NAME_Y);
@@ -66,7 +69,8 @@ public class PdfService {
     }
 
     public void writeForbiddenStar(PDPageContentStream contentStream, PDFont font, Boolean forbiddenStar) {
-        writeCircle(contentStream, font, forbiddenStar ? 244 : (float) 267.5, 365);
+        double x = forbiddenStar ? FORBIDDENSTAR_ON_X : FORBIDDENSTAR_OFF_X;
+        writeCircle(contentStream, font, (float) x, (float) FORBIDDENSTAR_Y);
     }
 
     private void writeCard(PDPageContentStream contentStream, PDFont font, String[] cards, float y, int max) {
@@ -96,7 +100,7 @@ public class PdfService {
         }
     }
 
-    private void writeCircle(PDPageContentStream contentStream, PDFont font, float x, float y) {
+    protected void writeCircle(PDPageContentStream contentStream, PDFont font, float x, float y) {
         try {
             contentStream.setFont(font, CIRCLE_FONT_SIZE);
             contentStream.setNonStrokingColor(255, 0, 0);

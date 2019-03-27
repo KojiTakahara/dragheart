@@ -1,7 +1,9 @@
 package dragheart.controller;
 
-import com.mashape.unirest.http.Unirest;
+import dragheart.service.GP8thSheetPdfService;
 import dragheart.service.PdfService;
+import dragheart.service.SingleSheetPdfService;
+import dragheart.service.TeamSheetPdfService;
 
 import org.apache.pdfbox.io.RandomAccessBuffer;
 import org.apache.pdfbox.io.RandomAccessRead;
@@ -28,7 +30,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -40,6 +41,7 @@ public class DMSheetController {
 
     @Autowired
     private PdfService pdfService;
+    private TeamSheetPdfService teamPdfService;
 
     @RequestMapping(value = "", method = RequestMethod.POST)
     public void doPost(
@@ -51,9 +53,10 @@ public class DMSheetController {
             @RequestParam(required = false) String[] hyperGR,
             @RequestParam(required = false) boolean forbiddenStar,
             @RequestParam(required = false) boolean teamSheet,
-            @RequestParam(required = false) boolean teamName,
+            @RequestParam(required = false) String teamName,
             @RequestParam(required = false) String seat,
             @RequestParam(required = false) boolean image,
+            @RequestParam(required = false) boolean dmgp,
             HttpServletResponse res) throws IOException {
         if (hyperSpatial == null) {
             hyperSpatial = new String[0];
@@ -75,6 +78,15 @@ public class DMSheetController {
             PDPageContentStream contentStream = new PDPageContentStream(tmp, tmpPage);
             PDFont font = getFont(tmp);
             contentStream.beginText();
+            if (dmgp) {
+                new GP8thSheetPdfService();
+            } else if (teamSheet) {
+                teamPdfService = new TeamSheetPdfService();
+                teamPdfService.writeTeamName(contentStream, font, teamName);
+                teamPdfService.writeSeat(contentStream, font, seat);
+            } else {
+                new SingleSheetPdfService();
+            }
             pdfService.writeName(contentStream, font, name);
             pdfService.writeNameKana(contentStream, font, nameKana);
             pdfService.writeId(contentStream, font, id);
@@ -87,7 +99,13 @@ public class DMSheetController {
             tmp.save(tempPath);
             tmp.close();
 
-            PDDocument document = getFile(getPdfFileNameByFormat(teamSheet));
+            String fileName = "decksheet_single.pdf";
+            if (dmgp) {
+                fileName = "GP8thdecksheet.pdf";
+            } else if (teamSheet) {
+                fileName = "decksheet_team.pdf";
+            }
+            PDDocument document = getFile(fileName);
             HashMap<Integer, String> overlayGuide = new HashMap<Integer, String>();
             overlayGuide.put(1, tempPath);
             Overlay overlay = new Overlay();
@@ -98,7 +116,6 @@ public class DMSheetController {
             setOutputStream(image, document, res.getOutputStream());
             overlay.close();
             document.close();
-            // callApi(playerName, mainDeck, hyperSpatial, format, deckId);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -136,27 +153,6 @@ public class DMSheetController {
     private PDFont getFont(PDDocument tempDocument) throws IOException {
         Resource resource = new ClassPathResource("corp_round_v1.ttf");
         return PDType0Font.load(tempDocument, resource.getInputStream(), true);
-    }
-
-    /**
-     * PDFファイル名を返す
-     */
-    private String getPdfFileNameByFormat(Boolean teamSheet) {
-        if (teamSheet) {
-            return "decksheet_team.pdf";
-        }
-        return "decksheet_single.pdf";
-    }
-
-    private void callApi(String playerName, String[] mainDeck, String[] hyperSpatial, String format) {
-        Unirest.post("http://1-1-0.dm-decksheet.appspot.com/api/deck")
-                .header("accept", "application/json")
-                .header("Content-Type", "application/json")
-                .field("mainDeck", Arrays.toString(mainDeck))
-                .field("hyperSpatial", Arrays.toString(hyperSpatial))
-                .field("format", format)
-                .field("playerName", playerName)
-                .asJsonAsync();
     }
 
     private void validateMessage(HttpServletResponse res) throws IOException {

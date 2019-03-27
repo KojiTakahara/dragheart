@@ -2,9 +2,9 @@ package dragheart.service;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SingleSheetPdfService extends PdfService {
+public class GP8thSheetPdfService extends PdfService {
 
-	public SingleSheetPdfService() {
+	public GP8thSheetPdfService() {
 		super.LEFT = 47;
 		super.START_MAIN = 711;
     	super.START_GR = 324;
