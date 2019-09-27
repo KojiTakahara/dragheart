@@ -16,7 +16,7 @@ public class TeamSheetPdfService extends PdfService {
 	public TeamSheetPdfService() {
 		super.LEFT = 59;
 		super.START_MAIN = 718;
-    super.START_GR = 349;
+		super.START_GR = 349;
 		super.START_HYPER = 226;
 		super.LINE_SPACE = 16.4;
 		super.NAME_Y = 80;

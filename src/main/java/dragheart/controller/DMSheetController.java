@@ -1,6 +1,6 @@
 package dragheart.controller;
 
-import dragheart.service.GP8thSheetPdfService;
+import dragheart.service.GP9thSheetPdfService;
 import dragheart.service.PdfService;
 import dragheart.service.SingleSheetPdfService;
 import dragheart.service.TeamSheetPdfService;
@@ -79,7 +79,7 @@ public class DMSheetController {
             PDFont font = getFont(tmp);
             contentStream.beginText();
             if (dmgp) {
-                new GP8thSheetPdfService();
+                new GP9thSheetPdfService();
             } else if (teamSheet) {
                 teamPdfService = new TeamSheetPdfService();
                 teamPdfService.writeTeamName(contentStream, font, teamName);
@@ -101,7 +101,7 @@ public class DMSheetController {
 
             String fileName = "decksheet_single.pdf";
             if (dmgp) {
-                fileName = "GP8thdecksheet.pdf";
+                fileName = "dmgp-9th-decksheet.pdf";
             } else if (teamSheet) {
                 fileName = "decksheet_team.pdf";
             }
