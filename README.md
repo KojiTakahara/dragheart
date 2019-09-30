@@ -1,14 +1,19 @@
 - 開発環境
- - javaのインストール
- - mavenのインストール
-   - $ brew search maven
-   - $ brew install maven@3.5
- - vscode extension
-   - java extension pack
-   - sptring boot tools 
+  - javaのインストール
+  - mavenのインストール
+    - $ brew search maven
+    - $ brew install maven@3.5
+  - vscode extension
+    - java extension pack
+    - sptring boot tools 
  - heroku
-   - $ heroku plugins:install java
-   - $ heroku buildpacks:clear
+    - $ heroku plugins:install java
+    - $ heroku buildpacks:clear
+- ローカル起動
+  - vscode extension から
+  - または
+    - $ mvn spring-boot:run
+  - http://localhost:9000/
 - herokuへのデプロイ
   - $ mvn clean package
   - $ heroku deploy:jar target/xxxx.jar --app appName
