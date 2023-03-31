@@ -35,6 +35,9 @@ public class PdfService {
     protected static double FORBIDDENSTAR_ON_X = 244;
     protected static double FORBIDDENSTAR_OFF_X = 267.5;
     protected static double FORBIDDENSTAR_Y = 365;
+    protected static double ZERON_ON_X = 516;
+    protected static double ZERON_OFF_X = 539.5;
+    protected static double ZERON_Y = 365;
 
     public void writeName(PDPageContentStream contentStream, PDFont font, String name) {
         this.writeText(contentStream, font, name, NAME_X, NAME_Y);
@@ -73,6 +76,11 @@ public class PdfService {
         writeCircle(contentStream, font, (float) x, (float) FORBIDDENSTAR_Y);
     }
 
+    public void writeZeron(PDPageContentStream contentStream, PDFont font, Boolean zeron) {
+        double x = zeron ? ZERON_ON_X : ZERON_OFF_X;
+        writeCircle(contentStream, font, (float) x, (float) ZERON_Y);
+    }
+
     private void writeCard(PDPageContentStream contentStream, PDFont font, String[] cards, float y, int max) {
         float x = LEFT;
         float tempY = y;
@@ -82,6 +90,15 @@ public class PdfService {
             }
             if (max / 2 == i) {
                 tempY = y;
+            }
+            if (40 < cards.length) {
+                if (19 < i && i <= 40)
+                    x = RIGHT - 92;
+                if (39 < i && i <= 60) {
+                    x = RIGHT + 88;
+                    if (i == 40)
+                        tempY = y;
+                }
             }
             writeText(contentStream, font, cards[i], x, tempY);
             tempY -= LINE_SPACE;
@@ -113,7 +130,7 @@ public class PdfService {
     }
 
     public boolean validate(String[] mainDeck, String[] hyperSpatial, String[] hyperGR) {
-        if (mainDeck.length != MAIN_MAX) {
+        if (mainDeck.length < 40 && 60 < mainDeck.length) {
             return false;
         }
         if (SPATIAL_MAX < hyperSpatial.length) {

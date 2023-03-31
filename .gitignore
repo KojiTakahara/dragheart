@@ -3,3 +3,5 @@ target/
 *.iml
 .mvn
 temp.pdf
+.settings/org.eclipse.jdt.core.prefs
+.vscode/settings.json

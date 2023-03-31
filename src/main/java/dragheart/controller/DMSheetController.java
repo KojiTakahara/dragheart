@@ -1,6 +1,6 @@
 package dragheart.controller;
 
-import dragheart.service.GP9thSheetPdfService;
+import dragheart.service.GP2022SheetPdfService;
 import dragheart.service.PdfService;
 import dragheart.service.SingleSheetPdfService;
 import dragheart.service.TeamSheetPdfService;
@@ -52,6 +52,7 @@ public class DMSheetController {
             @RequestParam(required = false) String[] hyperSpatial,
             @RequestParam(required = false) String[] hyperGR,
             @RequestParam(required = false) boolean forbiddenStar,
+            @RequestParam(required = false) boolean zeron,
             @RequestParam(required = false) boolean teamSheet,
             @RequestParam(required = false) String teamName,
             @RequestParam(required = false) String seat,
@@ -79,7 +80,14 @@ public class DMSheetController {
             PDFont font = getFont(tmp);
             contentStream.beginText();
             if (dmgp) {
-                new GP9thSheetPdfService();
+                String[] temp = new String[60];
+                System.arraycopy(mainDeck, 0, temp, 0, mainDeck.length);
+                for (int i = 0; i < 60; i++) {
+                    if (temp[i] == null)
+                        temp[i] = "";
+                }
+                mainDeck = temp;
+                new GP2022SheetPdfService();
             } else if (teamSheet) {
                 teamPdfService = new TeamSheetPdfService();
                 teamPdfService.writeTeamName(contentStream, font, teamName);
@@ -94,6 +102,7 @@ public class DMSheetController {
             pdfService.writeHyperSpatial(contentStream, font, hyperSpatial);
             pdfService.writeHyperGR(contentStream, font, hyperGR);
             pdfService.writeForbiddenStar(contentStream, font, forbiddenStar);
+            pdfService.writeZeron(contentStream, font, zeron);
             contentStream.endText();
             contentStream.close();
             tmp.save(tempPath);
@@ -101,7 +110,7 @@ public class DMSheetController {
 
             String fileName = "decksheet_single.pdf";
             if (dmgp) {
-                fileName = "dmgp-9th-decksheet.pdf";
+                fileName = "DMGP2022decksheet_220922.pdf";
             } else if (teamSheet) {
                 fileName = "decksheet_team.pdf";
             }
