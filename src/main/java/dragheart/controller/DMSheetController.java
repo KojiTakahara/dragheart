@@ -1,6 +1,6 @@
 package dragheart.controller;
 
-import dragheart.service.GP2022SheetPdfService;
+import dragheart.service.GP2023_1st_SheetPdfService;
 import dragheart.service.PdfService;
 import dragheart.service.SingleSheetPdfService;
 import dragheart.service.TeamSheetPdfService;
@@ -45,7 +45,7 @@ public class DMSheetController {
 
     @RequestMapping(value = "", method = RequestMethod.POST)
     public void doPost(
-            @RequestParam String name,
+            @RequestParam(required = false) String name,
             @RequestParam(required = false) String nameKana,
             @RequestParam(required = false) String id,
             @RequestParam String[] mainDeck,
@@ -87,7 +87,7 @@ public class DMSheetController {
                         temp[i] = "";
                 }
                 mainDeck = temp;
-                new GP2022SheetPdfService();
+                new GP2023_1st_SheetPdfService();
             } else if (teamSheet) {
                 teamPdfService = new TeamSheetPdfService();
                 teamPdfService.writeTeamName(contentStream, font, teamName);
@@ -110,7 +110,7 @@ public class DMSheetController {
 
             String fileName = "decksheet_single.pdf";
             if (dmgp) {
-                fileName = "DMGP2022decksheet_220922.pdf";
+                fileName = "DMGP2023decksheet.pdf";
             } else if (teamSheet) {
                 fileName = "decksheet_team.pdf";
             }

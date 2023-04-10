@@ -40,7 +40,9 @@ public class PdfService {
     protected static double ZERON_Y = 365;
 
     public void writeName(PDPageContentStream contentStream, PDFont font, String name) {
-        this.writeText(contentStream, font, name, NAME_X, NAME_Y);
+        if (name != null) {
+            this.writeText(contentStream, font, name, NAME_X, NAME_Y);
+        }
     }
 
     public void writeNameKana(PDPageContentStream contentStream, PDFont font, String nameKana) {
