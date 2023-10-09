@@ -1,6 +1,6 @@
 package dragheart.controller;
 
-import dragheart.service.GP2023_1st_SheetPdfService;
+import dragheart.service.GP2023_2nd_SheetPdfService;
 import dragheart.service.PdfService;
 import dragheart.service.SingleSheetPdfService;
 import dragheart.service.TeamSheetPdfService;
@@ -87,7 +87,7 @@ public class DMSheetController {
                         temp[i] = "";
                 }
                 mainDeck = temp;
-                new GP2023_1st_SheetPdfService();
+                new GP2023_2nd_SheetPdfService();
             } else if (teamSheet) {
                 teamPdfService = new TeamSheetPdfService();
                 teamPdfService.writeTeamName(contentStream, font, teamName);
@@ -110,7 +110,7 @@ public class DMSheetController {
 
             String fileName = "decksheet_single.pdf";
             if (dmgp) {
-                fileName = "DMGP2023decksheet.pdf";
+                fileName = "dmgp2023_2nd.pdf";
             } else if (teamSheet) {
                 fileName = "decksheet_team.pdf";
             }
